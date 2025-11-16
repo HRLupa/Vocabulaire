@@ -25,7 +25,8 @@ def devinette(nbpoints:int,nbessais:int,suite:int,demande:str):
         nbpoints+=1
         suite+=1
         print(f"Vous avez {nbpoints} points sur {nbessais+1} ce qui vous fait un taux de {(nbpoints/(nbessais+1))*100} % de réussite !")
-        print(f"Bravo ! La réponse était effectivement {essai} { {True:"",False:". Vous pouviez répondre "+repr(tableau[demande][0])+"".join(", ou "+repr(tableau[demande][i]) for i in range(1,len(tableau[demande])))}[len(tableau[demande])==1] }")
+        texterajoute={True:"",False:". Vous pouviez répondre "+repr(tableau[demande][0])+"".join(", ou "+repr(tableau[demande][i]) for i in range(1,len(tableau[demande])))}
+        print(f"Bravo ! La réponse était effectivement {essai} {texterajoute[len(tableau[demande])==1]}")
         if suite>=3:
             print(f"Incroyable ! Vous êtes sur une série de {suite} bonnes réponses")
     else:
@@ -109,13 +110,23 @@ def add_nouveaux():
     with open("./nouveaux.txt","w",encoding="utf-8") as f:
         f.write("")
     json.dump(tableau,open(path_file_list,"w",encoding="utf-8"))
-
+def print_currents():
+    for cle,val in tableau.items():
+        aff=cle+"="
+        for i in range(len(val)):
+            for j in range(len(val[i])):
+                if val[i][j]=="," and val[i][j-1]!="\\":
+                    val[i]=val[i][:j]+"\\"+val[i][j:]
+            if i!=0:
+                aff+=", "
+            aff+=val[i]
+        print(aff)
 
 
 
 
 add_nouveaux()
 tableau,resultats=get_liste()
-
+print_currents()
 
 newboucle()
