@@ -1,14 +1,18 @@
-import random
 from parameters import *
 import json
 
 
-def get_liste():
+def get_liste(show:bool=False):
     #renvoi:list[tuple[str,str]]=[]
     liste:dict[str,list[str]]=json.load(open(path_file_list))[listechoisie]
     res:dict[str,dict[str,int]]={}
     for cle in liste.keys():
         res[cle]={"apparu":0,"réussi":0,"raté":0}
+        if show:
+            nv=liste[cle][0]
+            for i in range(1,len(liste[cle])):
+                nv+=", "+liste[cle][i]
+            print(f"{cle} : {nv}")
     return liste,res
 
 
@@ -21,7 +25,7 @@ def devinette(nbpoints:int,nbessais:int,suite:int,demande:str):
         nbpoints+=1
         suite+=1
         print(f"Vous avez {nbpoints} points sur {nbessais+1} ce qui vous fait un taux de {(nbpoints/(nbessais+1))*100} % de réussite !")
-        print(f"Bravo ! La réponse était effectivement {essai} { {True:"",False:". Vous auriez pu aussi pu répondre "+repr(tableau[demande][0])+"".join(", ou "+repr(tableau[demande][i]) for i in range(1,len(tableau[demande])))}[len(tableau[demande])==1] }")
+        print(f"Bravo ! La réponse était effectivement {essai} { {True:"",False:". Vous pouviez répondre "+repr(tableau[demande][0])+"".join(", ou "+repr(tableau[demande][i]) for i in range(1,len(tableau[demande])))}[len(tableau[demande])==1] }")
         if suite>=3:
             print(f"Incroyable ! Vous êtes sur une série de {suite} bonnes réponses")
     else:
@@ -62,10 +66,7 @@ def newboucle():
         print("Aucun élément à apprendre")
         return
     while suivant:
-        if aléa:
-            demande=random.choice(list(tableau.keys()))
-        else:
-            demande=tuple(tableau.keys())[essais%len(tableau)]
+        demande=getdemande(resultats,essais)
         precessais=essais
         points,essais,suite=devinette(points,essais,suite,demande)
         if precessais==essais:
@@ -77,26 +78,37 @@ def newboucle():
                 suivant=False
 def add_nouveaux():
     try:
-        tableau:dict[str,dict[str,list[str]]]=json.load(open(path_file_list))
+        tableau:dict[str,dict[str,list[str]]]=json.load(open(path_file_list,encoding="utf-8"))
     except (json.decoder.JSONDecodeError,FileNotFoundError):
         tableau:dict[str,dict[str,list[str]]]={}
-    with open("./nouveaux.txt") as f:
+    with open("./nouveaux.txt",encoding="utf-8") as f:
         content:list[str]=f.read().splitlines()
     if len(content)==0:
         if tableau.get(listechoisie)==None:
             tableau[listechoisie]={}
-        json.dump(tableau,open(path_file_list,"w"))
+            json.dump(tableau,open(path_file_list,"w",encoding="utf-8"))
         return
     for i in range(len(content)):
         demande,reponse=content[i].split("=")
         if tableau.get(listechoisie)==None:
             tableau[listechoisie]={}
-        tableau[listechoisie][demande.strip()]=[val.strip() for val in reponse.split(",")]
-    with open("./nouveaux.txt","w") as f:
+        tabrep:list[str]=[]
+        i=0
+        while i<len(reponse):
+            if reponse[i]==",":
+                if reponse[i-1]!="\\":
+                    tabrep.append(reponse[:i])
+                    reponse=reponse[i+1:]
+                    i=0
+                else:
+                    reponse=reponse[:i-1]+reponse[i:]
+            else:
+                i+=1
+        tabrep.append(reponse)
+        tableau[listechoisie][demande.strip()]=[val.strip() for val in tabrep]
+    with open("./nouveaux.txt","w",encoding="utf-8") as f:
         f.write("")
-    json.dump(tableau,open(path_file_list,"w"))
-
-
+    json.dump(tableau,open(path_file_list,"w",encoding="utf-8"))
 
 
 

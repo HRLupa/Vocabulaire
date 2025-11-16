@@ -1,3 +1,4 @@
+from fonctionschoix import *
 path_file_list="./listes_vocab.json"
-aléa=True
+getdemande=floors
 listechoisie="anglaisG2526S1"
